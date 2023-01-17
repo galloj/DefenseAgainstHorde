@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
     public GameObject generalTuretShopItem;
     int balance = 15;
     public TMPro.TextMeshProUGUI balanceText;
-    int round = 1;
+    int round = 0;
     public TMPro.TextMeshProUGUI demageText;
     public TMPro.TextMeshProUGUI demageButtonText;
     public TMPro.TextMeshProUGUI attackSpeedText;
@@ -47,35 +47,70 @@ public class GameManager : MonoBehaviour
     internal int turret2Price = 5;
     internal int turret3Price = 5;
 
+    public Turret baseTurret;
+
+    public GameObject endGameDialog;
+    public TMPro.TextMeshProUGUI gameOverText;
+    internal int enemiesKilled = 0;
+
+    public TMPro.TextMeshProUGUI roundText;
+    public GameObject nextRoundUI;
+
 
     private
     // Start is called before the first frame update
     void Start()
     {
         Camera.main.orthographicSize = 3f;
-        for(int x= mapXStart; x< mapXEnd; x++)
+        SetupGame();
+        //NextRound();
+        nextRoundUI.SetActive(true);
+    }
+
+    void SetupGame()
+    {
+        for (int x = mapXStart; x < mapXEnd; x++)
         {
-            for(int y= mapYStart; y< mapYEnd; y++)
+            for (int y = mapYStart; y < mapYEnd; y++)
+            {
+                Tile tile = tileArray[x - mapXStart, y - mapYStart];
+                if(tile != null)
+                {
+                    Destroy(tile.gameObject);
+                    tileArray[x - mapXStart, y - mapYStart] = null;
+                }
+                Turret turret = turretArray[x - mapXStart, y - mapYStart];
+                if(turret != null)
+                {
+                    Destroy(turret.gameObject);
+                    turretArray[x - mapXStart, y - mapYStart] = null;
+                }
+            }
+        }
+        enemiesKilled = 0;
+        balance = 15;
+        round = 0;
+        for (int x = mapXStart; x < mapXEnd; x++)
+        {
+            for (int y = mapYStart; y < mapYEnd; y++)
             {
                 Tile tile = Instantiate(tilePrefab, new Vector2(x, y), Quaternion.identity);
                 tile.gameManager = this;
                 tile.name = $"Tile {x} {y}";
                 // make titles of city not placable
-                if(x>=-1 && x<=1 && y>=-1 && y<=1)
+                if (x >= -1 && x <= 1 && y >= -1 && y <= 1)
                 {
                     tile.isPlacable = false;
                 }
-                tileArray[x-mapXStart, y-mapYStart] = tile;
+                tileArray[x - mapXStart, y - mapYStart] = tile;
             }
         }
-        for(int i=0; i<10; i++)
-        SpawnEnemy();
     }
 
     void SpawnEnemy()
     {
         Vector3 spawnPosition;
-        switch(Random.Range(0,3))
+        switch(Random.Range(0,4))
         {
             case 0:
                 spawnPosition = new Vector3(mapXStart+0.5f, Random.Range(mapYStart, mapYEnd));
@@ -87,7 +122,7 @@ public class GameManager : MonoBehaviour
                 spawnPosition = new Vector3(Random.Range(mapXStart, mapXEnd), mapYStart + 0.5f);
                 break;
             case 3:
-                spawnPosition = new Vector3(Random.Range(mapXStart, mapXEnd), mapYEnd + 0.5f);
+                spawnPosition = new Vector3(Random.Range(mapXStart, mapXEnd), mapYEnd - 0.5f);
                 break;
             default:
                 Debug.Log("Spawn Enemy err");
@@ -144,6 +179,7 @@ public class GameManager : MonoBehaviour
         }
         Camera.main.transform.position = camPos;
 
+        // update dynamic texts
         balanceText.text = $"Balance: {balance}$";
         if (activeTurret != null)
         {
@@ -158,10 +194,19 @@ public class GameManager : MonoBehaviour
         turret1BuyText.text = $"Basic\nturret\nfor\n{turret1Price}$";
         turret2BuyText.text = $"Advanced\nturret\nfor\n{turret2Price}$";
         turret3BuyText.text = $"Best\nturret\nfor\n{turret3Price}$";
+        roundText.text = $"Current round: {round}";
+        gameOverText.text = $"Enemies killed: {enemiesKilled}\nRound reached: {round}";
+
+        // show next round button on round end
+        if (enemies.Count == 0 && !IsGameOver()) nextRoundUI.SetActive(true);
+
+        // show end screen if game over
+        endGameDialog.SetActive(IsGameOver());
     }
 
     public IEnumerator ShowShopDialog(Turret turret)
     {
+        if (IsGameOver()) yield break;
         HideDialog();
         yield return new WaitForEndOfFrame();
         activeTurret = turret;
@@ -178,6 +223,7 @@ public class GameManager : MonoBehaviour
         activeTurret = null;
         shopDialog.SetActive(false);
         turretBuyDialog.SetActive(false);
+        endGameDialog.SetActive(false);
     }
 
     public void BuyDemage()
@@ -191,7 +237,7 @@ public class GameManager : MonoBehaviour
 
     public void BuyAttackSpeed()
     {
-        if (activeTurret.demageUpgradeCost <= balance)
+        if (activeTurret.attackSpeedUpgradeCost <= balance)
         {
             balance -= activeTurret.attackSpeedUpgradeCost;
             activeTurret.UpgradeAttackSpeed();
@@ -200,7 +246,8 @@ public class GameManager : MonoBehaviour
 
     public void BuyHealth()
     {
-        if (activeTurret.demageUpgradeCost <= balance)
+        if (IsGameActive()) return;
+        if (activeTurret.healthUpgradeCost <= balance)
         {
             balance -= activeTurret.healthUpgradeCost;
             activeTurret.UpgradeHealth();
@@ -227,6 +274,7 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator BuyTile(Tile tile)
     {
+        if (IsGameOver()) yield break;
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
@@ -243,8 +291,8 @@ public class GameManager : MonoBehaviour
         }
         if (!tile.isPlacable) yield break;
         HideDialog();
-        yield return new WaitForEndOfFrame();
         activeTile = tile;
+        yield return new WaitForEndOfFrame();
         turretBuyDialog.SetActive(true);
         yield return null;
     }
@@ -253,7 +301,6 @@ public class GameManager : MonoBehaviour
     {
         if (balance < turret1Price) return;
         balance -= turret1Price;
-
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
@@ -317,5 +364,32 @@ public class GameManager : MonoBehaviour
         Destroy(enemy.gameObject);
         enemies.Remove(enemy);
         balance += 3;
+        enemiesKilled += 1;
+    }
+
+    public void PlayAgain()
+    {
+        HideDialog();
+        SetupGame();
+        baseTurret.ResetTurret();
+    }
+
+    public void NextRound()
+    {
+        HideDialog();
+        nextRoundUI.SetActive(false);
+        round += 1;
+        for (int i = 0; i < round + 1; i++)
+            SpawnEnemy();
+    }
+
+    public bool IsGameOver()
+    {
+        return baseTurret.health <= 0;
+    }
+
+    public bool IsGameActive()
+    {
+        return enemies.Count > 0 && !IsGameOver();
     }
 }

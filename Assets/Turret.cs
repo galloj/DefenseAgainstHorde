@@ -8,6 +8,12 @@ public class Turret : MonoBehaviour
     public GameManager gameManager;
 
     public BasicProjectile basicProjectile;
+    public AreaProjectile areaProjectile;
+    public EnergyFieldProjectile energyFieldProjectile;
+
+    public HealthBar healthBar;
+    internal float health = 1;
+    internal float maxHealth = 1;
 
     private Color defaultColor;
 
@@ -26,13 +32,14 @@ public class Turret : MonoBehaviour
     float demage;
     float cooldownTimer = 0;
 
-    List<Enemy> activeTargets = new List<Enemy>();
-
-    // Start is called before the first frame update
-    void Start()
+    public void ResetTurret()
     {
-        defaultColor = GetComponent<SpriteRenderer>().color;
-        switch(turretType)
+        maxHealth = 1;
+        sellPrice = 0;
+        demageUpgradeCount = 0;
+        attackSpeedUpgradeCount = 0;
+        healthUpgradeCount = 0;
+        switch (turretType)
         {
             case 0:
                 cooldown = 1f;
@@ -62,12 +69,32 @@ public class Turret : MonoBehaviour
                 attackSpeedUpgradeCost = 5;
                 break;
         }
+        health = maxHealth;
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        defaultColor = GetComponent<SpriteRenderer>().color;
+        ResetTurret();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(cooldownTimer <= 0)
+        if(healthBar != null)
+        {
+            if (health > 0)
+            {
+                healthBar.health = health / maxHealth;
+            } else
+            {
+                healthBar.health = 0;
+            }
+        }
+        if(gameManager.IsGameActive()) health += Time.deltaTime / 30f;
+        if (health > maxHealth) health = maxHealth;
+        if(cooldownTimer <= 0 && !gameManager.IsGameOver())
         {
             switch (turretType)
             {
@@ -128,9 +155,33 @@ public class Turret : MonoBehaviour
                         break;
                     }
                 case 2:
-                    break;
+                    {
+                        Enemy closestEnemy = null;
+                        foreach (Enemy enemy in gameManager.enemies)
+                        {
+                            if ((enemy.transform.position - transform.position).magnitude < 4)
+                            {
+                                closestEnemy = enemy;
+                            }
+                            if (closestEnemy == null) break;
+                            cooldownTimer = cooldown;
+                            Vector3 offset = (closestEnemy.transform.position - transform.position).normalized * 0.5f;
+                            Vector3 position = transform.position + offset;
+                            AreaProjectile projectile = Instantiate(areaProjectile, position, Quaternion.FromToRotation(new Vector3(1, 0, 0), offset));
+                            projectile.target = closestEnemy.transform.position - closestEnemy.transform.position.normalized * (closestEnemy.transform.position - transform.position).magnitude / projectile.speed * enemy.speed;
+                            projectile.demage = demage;
+                            projectile.gameManager = gameManager;
+                        }
+                        break;
+                    }
                 case 3:
-                    break;
+                    {
+                        cooldownTimer = cooldown;
+                        EnergyFieldProjectile projectile = Instantiate(energyFieldProjectile, transform);
+                        projectile.gameManager = gameManager;
+                        projectile.demage = demage;
+                        break;
+                    }
             }
         }
         if (cooldownTimer > 0) cooldownTimer -= Time.deltaTime;
@@ -166,6 +217,8 @@ public class Turret : MonoBehaviour
     public void UpgradeHealth()
     {
         healthUpgradeCount++;
+        health += 0.3f;
+        maxHealth += 0.3f;
     }
 
     public bool IsGeneralTurret()

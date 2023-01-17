@@ -27,6 +27,10 @@ public class BasicProjectile : MonoBehaviour
         {
             target.health -= demage;
             Destroy(this.gameObject);
-        } 
+        }
+        if (this.transform.position.magnitude > 150)
+        {
+            Destroy(this.gameObject);
+        }
     }
 }

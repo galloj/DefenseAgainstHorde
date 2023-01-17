@@ -99,11 +99,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
-  turretType: 2
-  sellPrice: 0
-  demageUpgradeCost: 0
-  attackSpeedUpgradeCost: 0
-  healthUpgradeCost: 0
+  basicProjectile: {fileID: 0}
+  energyFieldProjectile: {fileID: 430476116882290112, guid: e1fb7481e0545114fbf457d500548a42, type: 3}
+  turretType: 3
 --- !u!60 &941148313903723696
 PolygonCollider2D:
   m_ObjectHideFlags: 0
