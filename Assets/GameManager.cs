@@ -5,9 +5,9 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public Tile tilePrefab;
-    public TurretSript turret1Prefab;
-    public TurretSript turret2Prefab;
-    public TurretSript turret3Prefab;
+    public Turret turret1Prefab;
+    public Turret turret2Prefab;
+    public Turret turret3Prefab;
 
     private static int mapXStart = -10;
     private static int mapXEnd = 10;
@@ -17,17 +17,20 @@ public class GameManager : MonoBehaviour
     private Vector3? mousePosition = null;
 
     Tile[,] tileArray = new Tile[mapXEnd-mapXStart, mapYEnd - mapYStart];
-    TurretSript[,] turretArray = new TurretSript[mapXEnd - mapXStart, mapYEnd - mapYStart];
+    Turret[,] turretArray = new Turret[mapXEnd - mapXStart, mapYEnd - mapYStart];
 
-    private TurretSript activeTurret = null;
+    private Turret activeTurret = null;
     public GameObject shopDialog;
     public GameObject cityShopItem;
     public GameObject generalTuretShopItem;
     int balance = 15;
     public TMPro.TextMeshProUGUI balanceText;
     int round = 1;
+    public TMPro.TextMeshProUGUI demageText;
     public TMPro.TextMeshProUGUI demageButtonText;
+    public TMPro.TextMeshProUGUI attackSpeedText;
     public TMPro.TextMeshProUGUI attackSpeedButtonText;
+    public TMPro.TextMeshProUGUI healthText;
     public TMPro.TextMeshProUGUI healthButtonText;
     public TMPro.TextMeshProUGUI sellButtonText;
 
@@ -36,6 +39,13 @@ public class GameManager : MonoBehaviour
     public TMPro.TextMeshProUGUI turret1BuyText;
     public TMPro.TextMeshProUGUI turret2BuyText;
     public TMPro.TextMeshProUGUI turret3BuyText;
+
+    public Enemy enemyPrefab;
+    internal List<Enemy> enemies = new List<Enemy>();
+
+    internal int turret1Price = 5;
+    internal int turret2Price = 5;
+    internal int turret3Price = 5;
 
 
     private
@@ -58,6 +68,35 @@ public class GameManager : MonoBehaviour
                 tileArray[x-mapXStart, y-mapYStart] = tile;
             }
         }
+        for(int i=0; i<10; i++)
+        SpawnEnemy();
+    }
+
+    void SpawnEnemy()
+    {
+        Vector3 spawnPosition;
+        switch(Random.Range(0,3))
+        {
+            case 0:
+                spawnPosition = new Vector3(mapXStart+0.5f, Random.Range(mapYStart, mapYEnd));
+                break;
+            case 1:
+                spawnPosition = new Vector3(mapXEnd - 0.5f, Random.Range(mapYStart, mapYEnd));
+                break;
+            case 2:
+                spawnPosition = new Vector3(Random.Range(mapXStart, mapXEnd), mapYStart + 0.5f);
+                break;
+            case 3:
+                spawnPosition = new Vector3(Random.Range(mapXStart, mapXEnd), mapYEnd + 0.5f);
+                break;
+            default:
+                Debug.Log("Spawn Enemy err");
+                spawnPosition = new Vector3();
+                break;
+        }
+        Enemy enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        enemy.gameManager = this;
+        enemies.Add(enemy);
     }
 
     // Update is called once per frame
@@ -108,17 +147,20 @@ public class GameManager : MonoBehaviour
         balanceText.text = $"Balance: {balance}$";
         if (activeTurret != null)
         {
+            demageText.text = $"Demage: {activeTurret.demageUpgradeCount + 1}";
             demageButtonText.text = $"Buy for {activeTurret.demageUpgradeCost}$";
+            attackSpeedText.text = $"Attack speed: {activeTurret.attackSpeedUpgradeCount + 1}";
             attackSpeedButtonText.text = $"Buy for {activeTurret.attackSpeedUpgradeCost}$";
+            healthText.text = $"Health: {activeTurret.healthUpgradeCount + 1}";
             healthButtonText.text = $"Buy for {activeTurret.healthUpgradeCost}$";
             sellButtonText.text = $"Sell for {activeTurret.sellPrice}$";
         }
-        turret1BuyText.text = $"Basic\nturret\nfor\n{5}$";
-        turret2BuyText.text = $"Advanced\nturret\nfor\n{5}$";
-        turret3BuyText.text = $"Best\nturret\nfor\n{5}$";
+        turret1BuyText.text = $"Basic\nturret\nfor\n{turret1Price}$";
+        turret2BuyText.text = $"Advanced\nturret\nfor\n{turret2Price}$";
+        turret3BuyText.text = $"Best\nturret\nfor\n{turret3Price}$";
     }
 
-    public IEnumerator ShowShopDialog(TurretSript turret)
+    public IEnumerator ShowShopDialog(Turret turret)
     {
         HideDialog();
         yield return new WaitForEndOfFrame();
@@ -178,6 +220,9 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        Destroy(activeTurret.gameObject);
+        activeTurret = null;
+        HideDialog();
     }
 
     public IEnumerator BuyTile(Tile tile)
@@ -206,13 +251,16 @@ public class GameManager : MonoBehaviour
 
     public void BuyTurret1()
     {
+        if (balance < turret1Price) return;
+        balance -= turret1Price;
+
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
             {
                 if (tileArray[x - mapXStart, y - mapYStart] == activeTile)
                 {
-                    TurretSript turret = Instantiate(turret1Prefab, new Vector2(x, y), Quaternion.identity);
+                    Turret turret = Instantiate(turret1Prefab, new Vector2(x, y), Quaternion.identity);
                     turret.gameManager = this;
                     turret.name = $"Turret1: {x} {y}";
                     turretArray[x - mapXStart, y - mapYStart] = turret;
@@ -224,13 +272,16 @@ public class GameManager : MonoBehaviour
 
     public void BuyTurret2()
     {
+        if (balance < turret2Price) return;
+        balance -= turret2Price;
+
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
             {
                 if (tileArray[x - mapXStart, y - mapYStart] == activeTile)
                 {
-                    TurretSript turret = Instantiate(turret2Prefab, new Vector2(x, y), Quaternion.identity);
+                    Turret turret = Instantiate(turret2Prefab, new Vector2(x, y), Quaternion.identity);
                     turret.gameManager = this;
                     turret.name = $"Turret2: {x} {y}";
                     turretArray[x - mapXStart, y - mapYStart] = turret;
@@ -242,13 +293,16 @@ public class GameManager : MonoBehaviour
 
     public void BuyTurret3()
     {
+        if (balance < turret2Price) return;
+        balance -= turret2Price;
+
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
             {
                 if (tileArray[x - mapXStart, y - mapYStart] == activeTile)
                 {
-                    TurretSript turret = Instantiate(turret3Prefab, new Vector2(x, y), Quaternion.identity);
+                    Turret turret = Instantiate(turret3Prefab, new Vector2(x, y), Quaternion.identity);
                     turret.gameManager = this;
                     turret.name = $"Turret3: {x} {y}";
                     turretArray[x - mapXStart, y - mapYStart] = turret;
@@ -256,5 +310,12 @@ public class GameManager : MonoBehaviour
             }
         }
         HideDialog();
+    }
+
+    public void KillEnemy(Enemy enemy)
+    {
+        Destroy(enemy.gameObject);
+        enemies.Remove(enemy);
+        balance += 3;
     }
 }

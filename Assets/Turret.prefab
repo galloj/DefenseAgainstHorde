@@ -216,6 +216,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
+  basicProjectile: {fileID: 3061305015923816041, guid: c3b01fc61fb3f1841a38eb8823efb710, type: 3}
   turretType: 0
 --- !u!1 &3618552333075245456
 GameObject:

@@ -5,8 +5,8 @@ using UnityEngine.EventSystems;
 
 public class Tile : MonoBehaviour
 {
-    public GameManager gameManager;
-    public bool isPlacable = true;
+    internal GameManager gameManager;
+    internal bool isPlacable = true;
     public GameObject highlight;
     Color originalColor;
 
