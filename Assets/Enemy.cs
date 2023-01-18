@@ -8,20 +8,21 @@ public class Enemy : MonoBehaviour
 
     public HealthBar healthBar;
 
-    internal float health = 1;
+    public float maxHealth = 1;
+    internal float health;
     private float cooldown = 0;
     internal float speed = 1f;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        health = maxHealth;
     }
 
     // Update is called once per frame
     void Update()
     {
-        healthBar.health = health;
+        healthBar.health = health/maxHealth;
         if(cooldown <= 0)
         {
             if (transform.position.magnitude <= 1.4f)

@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
     public TMPro.TextMeshProUGUI turret3BuyText;
 
     public Enemy enemyPrefab;
+    public Enemy enemy2Prefab;
     internal List<Enemy> enemies = new List<Enemy>();
 
     internal int turret1Price = 5;
@@ -113,7 +114,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void SpawnEnemy()
+    void SpawnEnemy(int id)
     {
         Vector3 spawnPosition;
         switch(Random.Range(0,4))
@@ -135,7 +136,15 @@ public class GameManager : MonoBehaviour
                 spawnPosition = new Vector3();
                 break;
         }
-        Enemy enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        Enemy usedPrefab;
+        if(id%4==0)
+        {
+            usedPrefab = enemy2Prefab;
+        } else
+        {
+            usedPrefab = enemyPrefab;
+        }
+        Enemy enemy = Instantiate(usedPrefab, spawnPosition, Quaternion.identity);
         enemy.gameManager = this;
         enemies.Add(enemy);
     }
@@ -391,7 +400,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < round + 1; i++)
         {
-            SpawnEnemy();
+            SpawnEnemy(i+1);
             yield return new WaitForSeconds(0.03f);
         }
     }

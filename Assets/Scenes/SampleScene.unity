@@ -1066,6 +1066,7 @@ MonoBehaviour:
   turret2BuyText: {fileID: 2037210291}
   turret3BuyText: {fileID: 158378343}
   enemyPrefab: {fileID: 6572346291945831228, guid: f7ffd6f49ec72194cbbf70d820813a8d, type: 3}
+  enemy2Prefab: {fileID: 6572346291945831228, guid: 55a34424e70a94f45805303934c43fb9, type: 3}
   baseTurret: {fileID: 1722614957}
   endGameDialog: {fileID: 885690180}
   gameOverText: {fileID: 1281658199}
