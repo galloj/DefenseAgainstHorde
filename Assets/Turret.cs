@@ -28,7 +28,7 @@ public class Turret : MonoBehaviour
     internal int attackSpeedUpgradeCount = 0;
     internal int healthUpgradeCount = 0;
 
-    float cooldown;
+    float attacksPerSecond;
     float demage;
     float cooldownTimer = 0;
 
@@ -42,28 +42,28 @@ public class Turret : MonoBehaviour
         switch (turretType)
         {
             case 0:
-                cooldown = 1f;
+                attacksPerSecond = 1f;
                 demage = 0.2f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
                 break;
             case 1:
                 sellPrice = 3;
-                cooldown = 1.5f;
+                attacksPerSecond = 0.7f;
                 demage = 0.25f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
                 break;
             case 2:
-                sellPrice = 10;
-                cooldown = 2f;
+                sellPrice = 7;
+                attacksPerSecond = 0.5f;
                 demage = 0.15f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
                 break;
             case 3:
-                sellPrice = 20;
-                cooldown = 3.5f;
+                sellPrice = 13;
+                attacksPerSecond = 0.3f;
                 demage = 0.1f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
@@ -109,7 +109,7 @@ public class Turret : MonoBehaviour
                             }
                         }
                         if (closestEnemies.Count == 0) break;
-                        cooldownTimer = cooldown;
+                        cooldownTimer = 1/ attacksPerSecond;
                         while (closestEnemies.Count > 3)
                         {
                             Enemy furthermostEnemy = null;
@@ -145,7 +145,7 @@ public class Turret : MonoBehaviour
                             }
                         }
                         if (closestEnemy == null) break;
-                        cooldownTimer = cooldown;
+                        cooldownTimer = 1/ attacksPerSecond;
                         Vector3 offset = (closestEnemy.transform.position - transform.position).normalized * 0.5f;
                         Vector3 position = transform.position + offset;
                         BasicProjectile projectile = Instantiate(basicProjectile, position, Quaternion.FromToRotation(new Vector3(1, 0, 0), offset));
@@ -163,20 +163,20 @@ public class Turret : MonoBehaviour
                             {
                                 closestEnemy = enemy;
                             }
-                            if (closestEnemy == null) break;
-                            cooldownTimer = cooldown;
-                            Vector3 offset = (closestEnemy.transform.position - transform.position).normalized * 0.5f;
-                            Vector3 position = transform.position + offset;
-                            AreaProjectile projectile = Instantiate(areaProjectile, position, Quaternion.FromToRotation(new Vector3(1, 0, 0), offset));
-                            projectile.target = closestEnemy.transform.position - closestEnemy.transform.position.normalized * (closestEnemy.transform.position - transform.position).magnitude / projectile.speed * enemy.speed;
-                            projectile.demage = demage;
-                            projectile.gameManager = gameManager;
                         }
+                        if (closestEnemy == null) break;
+                        cooldownTimer = 1/ attacksPerSecond;
+                        Vector3 offset = (closestEnemy.transform.position - transform.position).normalized * 0.5f;
+                        Vector3 position = transform.position + offset;
+                        AreaProjectile projectile = Instantiate(areaProjectile, position, Quaternion.FromToRotation(new Vector3(1, 0, 0), offset));
+                        projectile.target = closestEnemy.transform.position - closestEnemy.transform.position.normalized * (closestEnemy.transform.position - transform.position).magnitude / projectile.speed * closestEnemy.speed;
+                        projectile.demage = demage;
+                        projectile.gameManager = gameManager;
                         break;
                     }
                 case 3:
                     {
-                        cooldownTimer = cooldown;
+                        cooldownTimer = 1/ attacksPerSecond;
                         EnergyFieldProjectile projectile = Instantiate(energyFieldProjectile, transform);
                         projectile.gameManager = gameManager;
                         projectile.demage = demage;
@@ -207,11 +207,17 @@ public class Turret : MonoBehaviour
     public void UpgradeDemage()
     {
         demageUpgradeCount++;
+        demage += 0.2f;
+        sellPrice += demageUpgradeCost - 2;
+        demageUpgradeCost += 3;
     }
 
     public void UpgradeAttackSpeed()
     {
         attackSpeedUpgradeCount++;
+        attacksPerSecond += 0.2f;
+        sellPrice += attackSpeedUpgradeCost - 2;
+        attackSpeedUpgradeCost += 3;
     }
 
     public void UpgradeHealth()
@@ -219,6 +225,8 @@ public class Turret : MonoBehaviour
         healthUpgradeCount++;
         health += 0.3f;
         maxHealth += 0.3f;
+        sellPrice += healthUpgradeCost - 2;
+        healthUpgradeCost += 3;
     }
 
     public bool IsGeneralTurret()

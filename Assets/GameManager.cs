@@ -44,8 +44,8 @@ public class GameManager : MonoBehaviour
     internal List<Enemy> enemies = new List<Enemy>();
 
     internal int turret1Price = 5;
-    internal int turret2Price = 5;
-    internal int turret3Price = 5;
+    internal int turret2Price = 10;
+    internal int turret3Price = 15;
 
     public Turret baseTurret;
 
@@ -87,9 +87,15 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        foreach(Enemy enemy in enemies)
+        {
+            Destroy(enemy.gameObject);
+        }
+        enemies.Clear();
         enemiesKilled = 0;
         balance = 15;
         round = 0;
+        baseTurret.ResetTurret();
         for (int x = mapXStart; x < mapXEnd; x++)
         {
             for (int y = mapYStart; y < mapYEnd; y++)
@@ -371,7 +377,6 @@ public class GameManager : MonoBehaviour
     {
         HideDialog();
         SetupGame();
-        baseTurret.ResetTurret();
     }
 
     public void NextRound()
@@ -379,8 +384,16 @@ public class GameManager : MonoBehaviour
         HideDialog();
         nextRoundUI.SetActive(false);
         round += 1;
+        StartCoroutine(Spawner());
+    }
+
+    public IEnumerator Spawner()
+    {
         for (int i = 0; i < round + 1; i++)
+        {
             SpawnEnemy();
+            yield return new WaitForSeconds(0.03f);
+        }
     }
 
     public bool IsGameOver()
