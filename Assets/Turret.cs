@@ -58,14 +58,14 @@ public class Turret : MonoBehaviour
             case 2:
                 sellPrice = 7;
                 attacksPerSecond = 0.5f;
-                demage = 0.15f;
+                demage = 0.2f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
                 break;
             case 3:
                 sellPrice = 13;
                 attacksPerSecond = 0.3f;
-                demage = 0.1f;
+                demage = 0.2f;
                 demageUpgradeCost = 5;
                 attackSpeedUpgradeCost = 5;
                 break;
