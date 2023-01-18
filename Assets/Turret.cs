@@ -22,7 +22,7 @@ public class Turret : MonoBehaviour
     internal int sellPrice = 0;
     internal int demageUpgradeCost;
     internal int attackSpeedUpgradeCost;
-    internal int healthUpgradeCost = 10;
+    internal int healthUpgradeCost;
 
     internal int demageUpgradeCount = 0;
     internal int attackSpeedUpgradeCount = 0;
@@ -39,6 +39,7 @@ public class Turret : MonoBehaviour
         demageUpgradeCount = 0;
         attackSpeedUpgradeCount = 0;
         healthUpgradeCount = 0;
+        healthUpgradeCost = 10;
         switch (turretType)
         {
             case 0:

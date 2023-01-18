@@ -146,6 +146,7 @@ public class GameManager : MonoBehaviour
         }
         Enemy enemy = Instantiate(usedPrefab, spawnPosition, Quaternion.identity);
         enemy.gameManager = this;
+        enemy.maxHealth *= 1 + round * 0.1f;
         enemies.Add(enemy);
     }
 
@@ -355,8 +356,8 @@ public class GameManager : MonoBehaviour
 
     public void BuyTurret3()
     {
-        if (balance < turret2Price) return;
-        balance -= turret2Price;
+        if (balance < turret3Price) return;
+        balance -= turret3Price;
 
         for (int x = mapXStart; x < mapXEnd; x++)
         {
